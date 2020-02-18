@@ -306,7 +306,7 @@ module.exports = swaggerDocs = swaggerJsDoc(swaggerOptions);
 userRouter.route('/users').get(getUsers);
 ```
 
-### Cryptons le mot de passe
+### Cryptons le mot de passe depuis le model
 
 ```bash
 $npm i bcrypt
@@ -318,13 +318,8 @@ $npm i bcrypt
  * @returns     json message
  * @description Add a user with crypted password into the database.
  */
-const addUser = (newUser, callback) => {
-  bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(newUser.password, salt, (err, hash) => {
-      if (err) throw err;
-      newUser.password = hash;
-      newUser.save(callback);
-    });
-  });
-};
+UserSchema.pre('save', async function(next) {
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
 ```

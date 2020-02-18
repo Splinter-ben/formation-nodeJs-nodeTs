@@ -1,5 +1,4 @@
 const UserModel = require('../models/user_model'),
-  bcrypt = require('bcryptjs'),
   ErrorResponse = require('../utils/ErrorResponse');
 
 /**
@@ -45,7 +44,7 @@ exports.getUser = async (req, res, next) => {
 };
 
 /**
- * @route       POST /api/v1/user/register
+ * @route       POST /api/v1/users/register
  * @access      Private
  * @returns     json message
  * @description Register user into database.
@@ -53,26 +52,12 @@ exports.getUser = async (req, res, next) => {
 exports.registerUser = async (req, res, next) => {
   try {
     const { name } = req.body;
-    const user = new UserModel(req.body);
+    const user = await UserModel.create(req.body);
 
-    bcrypt.genSalt(10, (err, salt) => {
-      bcrypt.hash(user.password, salt, (err, hash) => {
-        if (err) {
-          throw res.status(500).json({
-            success: false,
-            data: user,
-            msg: 'Failed to register new user !'
-          });
-        } else {
-          user.password = hash;
-          user.save(user);
-          res.status(200).json({
-            success: true,
-            data: user,
-            msg: `Registration new user: ${name}`
-          });
-        }
-      });
+    res.status(200).json({
+      success: true,
+      data: user,
+      msg: `Registration new user: ${name}`
     });
   } catch (error) {
     console.log(error);

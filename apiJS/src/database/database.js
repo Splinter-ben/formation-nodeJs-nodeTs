@@ -3,13 +3,18 @@ const mongoose = require('mongoose'),
   password = process.env.DB_PASSWORD,
   bdd = process.env.DB_NAME;
 
-const cloud_Url = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
-const local_Url = 'mongodb://localhost:27017/meanauth';
+// Dev purpose only
+let URL;
+if (process.env.LOCATION === 'agence') {
+  URL = 'mongodb://localhost:27017/meanauth';
+} else {
+  URL = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
+}
 
 // Atlas mongoDB
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect((mongo_uri = cloud_Url), {
+    const conn = await mongoose.connect((mongo_uri = URL), {
       useNewUrlParser: true,
       useCreateIndex: true,
       useUnifiedTopology: true,
