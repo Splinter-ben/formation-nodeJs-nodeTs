@@ -121,7 +121,9 @@ const UserSchema = new mongoose.Schema({
     ]
   },
   role: {
-    type: String
+    type: String,
+    enum: ['member', 'guest'],
+    default: 'guest'
   },
   password: {
     type: String,
@@ -309,7 +311,7 @@ userRouter.route('/users').get(getUsers);
 ### Cryptons le mot de passe depuis le model
 
 ```bash
-$npm i bcrypt
+$npm i bcryptjs
 ```
 
 ```javascript
