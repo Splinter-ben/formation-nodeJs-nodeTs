@@ -4,12 +4,7 @@ const mongoose = require('mongoose'),
   bdd = process.env.DB_NAME;
 
 // Dev purpose only
-let URL;
-if (process.env.LOCATION === 'agence') {
-  URL = 'mongodb://localhost:27017/meanauth';
-} else {
-  URL = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
-}
+const URL = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
 
 // Atlas mongoDB
 const connectDB = async () => {
@@ -18,7 +13,7 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useCreateIndex: true,
       useUnifiedTopology: true,
-      useFindAndModify: false
+      useFindAndModify: false,
     });
     console.log(
       `MongoDB connected: ${conn.connection.host}`.cyan.underline.bold
