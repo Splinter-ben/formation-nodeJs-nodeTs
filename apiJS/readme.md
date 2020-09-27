@@ -26,19 +26,18 @@ $npm init
 $npm init -y
 ```
 
-### Installation des dépendances
+### Installation des dépendances pour la formation
 
 ```bash
-$npm install express --save
-    and
+$npm i express colors cors dotenv mongoose swagger-jsdoc swagger-ui-express
 $npm i -D nodemon
 ```
 
-### Création d'un script de démarrage
+### Création d'un script de démarrage avec inclusion du ficher d'environnement
 
 ```
 "scripts": {
-    "dev": "nodemon ./src/app.js"
+    "dev": "nodemon -r dotenv/config ./src/app.js"
   },
 ```
 
@@ -66,7 +65,8 @@ const port = process.env.PORT || 5000;
 const route = require('../src/routes/user');
 app = express();
 
-// Simple route
+// Route
+// app.get() becomes app.use()
 app.use('/api/v1/', route);
 
 // Start server
@@ -91,17 +91,47 @@ route.get('/user', (req, res) => {
 module.exports = route;
 ```
 
-### Installation des dépendances pour la formation
-
-```bash
-$npm i express colors cors dotenv mongoose swagger-jsdoc swagger-ui-express
-$npm i -D nodemon
-```
-
-### Connection à la base de donnée
+### Création de la connection à la base de donnée
 
 ```javascript
-mongo_uri = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
+const mongoose = require('mongoose'),
+  host = process.env.DB_HOST_ATLAS,
+  password = process.env.DB_PASSWORD,
+  bdd = process.env.DB_NAME;
+
+// Atlas mongoDB
+const URL = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${bdd}?retryWrites=true&w=majority`;
+
+const connectDB = async () => {
+  const conn = await mongoose.connect((mongo_uri = URL), {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  });
+  console.log(`MongoDB connected: ${conn.connection.host}`.cyan.underline.bold);
+};
+
+module.exports = connectDB;
+```
+### Ajout d'une connection à la base de donée
+
+```javascript
+const express = require('express');
+const port = process.env.PORT || 5000;
+const route = require('../src/routes/user');
+const connectDB = require('./database/database');
+app = express();
+
+// Route
+// app.get() becomes app.use()
+app.use('/api/v1/', route);
+
+// Connection BDD
+connectDB();
+
+// Start server
+app.listen(port, () => console.log(`Server listen on port ${port}`));
 ```
 
 ### Création d'un model d'utilisateur
