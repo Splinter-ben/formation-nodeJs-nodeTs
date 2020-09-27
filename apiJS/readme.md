@@ -44,6 +44,8 @@ $npm i -D nodemon
 ### Création du serveur
 
 ```javascript
+require('colors');
+
 const express = require('express');
 const port = process.env.PORT || 5000;
 app = express();
@@ -60,6 +62,8 @@ app.listen(port, () => console.log(`Server listen on port ${port}`));
 ### Ajout d'une route utilisateur
 
 ```javascript
+require('colors');
+
 const express = require('express');
 const port = process.env.PORT || 5000;
 const route = require('../src/routes/user');
@@ -117,6 +121,8 @@ module.exports = connectDB;
 ### Ajout d'une connection à la base de donée
 
 ```javascript
+require('colors');
+
 const express = require('express');
 const port = process.env.PORT || 5000;
 const route = require('../src/routes/user');
