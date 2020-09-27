@@ -41,7 +41,30 @@ $npm i -D nodemon
   },
 ```
 
-### Création du serveur
+### Création du fichier d'environnement a la racine du projet
+
+```bash
+$touch .env
+```
+
+### Example de variables
+```bash
+DB_HOST_ATLAS=example_username
+DB_NAME=example_bdd
+DB_PASSWORD=example_password
+SECRET=example_secret
+
+NODE_ENV=development
+PORT=5000
+```
+
+### Création du dossier source dans "./src"
+
+```bash
+$mkdir src
+```
+
+### Création du serveur dans "./src/app.js"
 
 ```javascript
 require('colors');
@@ -59,7 +82,7 @@ app.get('/', (req, res) => {
 app.listen(port, () => console.log(`Server listen on port ${port}`));
 ```
 
-### Ajout d'une route utilisateur
+### Ajout d'une route utilisateur dans "./src/app.js"
 
 ```javascript
 require('colors');
@@ -77,7 +100,7 @@ app.use('/api/v1/', route);
 app.listen(port, () => console.log(`Server listen on port ${port}`));
 ```
 
-### Création d'une route
+### Création d'une route "./src/app.js"
 
 ```javascript
 const route = require('express').Route();
@@ -95,7 +118,7 @@ route.get('/user', (req, res) => {
 module.exports = route;
 ```
 
-### Création de la connection à la base de donnée
+### Création de la connection à la base de donnée dans "./src/database/database.js"
 
 ```javascript
 const mongoose = require('mongoose'),
@@ -118,7 +141,7 @@ const connectDB = async () => {
 
 module.exports = connectDB;
 ```
-### Ajout d'une connection à la base de donée
+### Ajout d'une connection à la base de donée dans "./src/app.js"
 
 ```javascript
 require('colors');
@@ -140,53 +163,58 @@ connectDB();
 app.listen(port, () => console.log(`Server listen on port ${port}`));
 ```
 
-### Création d'un model d'utilisateur
+### Création d'un model d'utilisateur dans "./src/model/user.model.js"
 
 ```javascript
+const mongoose = require('mongoose');
+
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please add a name']
+    required: [true, 'Please add a name'],
   },
   email: {
     type: String,
     required: [true, 'Please add an email'],
     match: [
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      'Please add a valid email'
-    ]
+      'Please add a valid email',
+    ],
   },
   role: {
     type: String,
     enum: ['member', 'guest'],
-    default: 'guest'
+    default: 'guest',
   },
   password: {
     type: String,
-    required: [true, 'Please add a password']
-  }
+    required: [true, 'Please add a password'],
+  },
 });
 
-const User = (module.exports = mongoose.model('User', UserSchema));
+module.exports = mongoose.model('User', UserSchema);
 ```
 
-### Création du controller
+### Création du controller dans "./src/controller/user.controller.js"
 
 ```javascript
+const User = require('../models/user.model');
+
 /**
- * @route       GET /api/v1/users
+ * @route       GET /api/v1/user
  * @access      Public
  * @returns     json message
  * @description Get all users from database.
  */
-exports.getUsers = async (req, res, next) => {
+exports.getUsers = async (req, res) => {
   try {
-    const users = await UserModel.find(req.query);
+    const users = await User.find(req.query);
+
     res.status(200).json({
       success: true,
       msg: 'Show all users',
       count: users.length,
-      data: users
+      data: users,
     });
   } catch (error) {
     console.log(error);
@@ -194,20 +222,20 @@ exports.getUsers = async (req, res, next) => {
 };
 
 /**
- * @route       POST /api/v1/users/register
+ * @route       POST /api/v1/user/register
  * @access      Private
  * @returns     json message
  * @description Register a user into database.
  */
 exports.registerUser = async (req, res, next) => {
   try {
-    const user = await UserModel.create(req.body);
+    const { name } = req.body;
+    const user = await User.create(req.body);
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       data: user,
-      //count: user.length,
-      msg: 'Created new user'
+      msg: `Registration new user: ${name}`,
     });
   } catch (error) {
     console.log(error);
@@ -215,15 +243,75 @@ exports.registerUser = async (req, res, next) => {
 };
 ```
 
-### Ajout du protocole CORS et Body Parser
+### Modification des routes dans "./src/route/user.route.js"
 
-```bash
-$npm i cors
+```javascript
+const userRouter = require('express').Router();
+const { getUsers, registerUser } = require('../controller/user.controller');
+
+// GET all Users
+userRouter.route('/user').get(getUsers);
+
+// POST a new user
+userRouter.route('/user/register').post(registerUser);
+
+module.exports = userRouter;
 ```
 
-### CORS Options
+### Ajout de Body Parser dans "./src/app.js"
 
-```bash
+```javascript
+require('colors');
+
+const express = require('express'),
+  port = process.env.PORT,
+  userRouter = require('../route/user.route'),
+  connectDB = require('../database/atlas'),
+  app = express();
+
+// Body Parser parsing of application/json type post data
+app.use(express.json());
+
+// Main route
+app.use('/api/v1', userRouter);
+
+// Connection BDD
+connectDB();
+
+// Start server
+app.listen(port, () => console.log(`Server listen on port: ${port}`));
+```
+
+### Ajout de Cors dans "./src/app.js"
+```Javascript
+require('colors');
+
+const express = require('express'),
+  port = process.env.PORT,
+  userRouter = require('../route/user.route'),
+  cors = require('cors'),
+  connectDB = require('../database/atlas'),
+  app = express();
+
+// Cors
+app.use(cors());
+
+// Body Parser parsing of application/json type post data
+app.use(express.json());
+
+// Main route
+app.use('/api/v1', userRouter);
+
+// Connection BDD
+connectDB();
+
+// Start server
+app.listen(port, () => console.log(`Server listen on port: ${port}`));
+```
+
+### Création du CORS Options dans "./src/midlleware/cors.js"
+
+```javascript
 const whitelist = [
   'http://localhost:5000',
   'http://localhost:4200'
@@ -250,7 +338,32 @@ app.use(cors(corsOptions));
 app.use(express.json());
 ```
 
-### Création d'une class Error Response
+### Ajout de la protection CORS sur les routes dans "./src/route/user.route.js"
+
+```javascript
+const { getUsers, registerUser } = require('../controller/user.controller'),
+  userRouter = require('express').Router(),
+  corsOptions = require('../middlewares/cors'),
+  cors = require('cors');
+
+// GET all users
+userRouter.route('/user', cors(corsOptions)).get(getUsers);
+
+// POST a new user
+userRouter.route('/user/register', cors(corsOptions)).post(registerUser);
+
+module.exports = userRouter;
+```
+
+```javascript
+// Enable CORS
+app.use(cors(corsOptions));
+
+// Support parsing of application/json type post data
+app.use(express.json());
+```
+
+### Création d'une class Error Response dans "./src/errors/error.response.js"
 
 ```javascript
 class ErrorResponse extends Error {
@@ -261,6 +374,88 @@ class ErrorResponse extends Error {
 }
 
 module.exports = ErrorResponse;
+```
+
+### Ajout du GET single user dans "./src/controller/user.controller.js"
+
+```javascript
+const User = require('../models/user.model'),
+  ErrorResponse = require('../errors/error.response');
+  
+/**
+ * @route       GET /api/v1/user/:{id}
+ * @access      Public
+ * @returns     json message
+ * @description Get a single user from database.
+ */
+exports.getUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      // Yes, it's a valid ObjectId, proceed with `findById` call.
+      const user = await User.findById(id);
+
+      res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } else {
+      return next(new ErrorResponse(`No user with the id of ${id}`), 404);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+```
+
+### Ajout du GET single user dans "./src/route/user.route.js"
+
+```javascript
+// GET a single user
+userRouter.route('/user/:id', cors(corsOptions)).get(getUser);
+```
+
+### Cryptons le mot de passe depuis le model "./src/model/user.model.js"
+
+```bash
+$npm i bcryptjs
+```
+
+```javascript
+const mongoose = require('mongoose'),
+  bcrypt = require('bcryptjs');
+
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please add a name'],
+  },
+  email: {
+    type: String,
+    required: [true, 'Please add an email'],
+    match: [
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      'Please add a valid email',
+    ],
+  },
+  role: {
+    type: String,
+    enum: ['member', 'guest'],
+    default: 'guest',
+  },
+  password: {
+    type: String,
+    required: [true, 'Please add a password'],
+  },
+});
+
+// Encrypt password using bcrypt
+UserSchema.pre('save', async function (next) {
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
+module.exports = mongoose.model('User', UserSchema);
 ```
 
 ### Ajout d'un logger avec morgan
@@ -342,22 +537,4 @@ module.exports = swaggerDocs = swaggerJsDoc(swaggerOptions);
  *         description: No user found in db
  */
 userRouter.route('/users').get(getUsers);
-```
-
-### Cryptons le mot de passe depuis le model
-
-```bash
-$npm i bcryptjs
-```
-
-```javascript
-/**
- * @function    addUser
- * @returns     json message
- * @description Add a user with crypted password into the database.
- */
-UserSchema.pre('save', async function(next) {
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-});
 ```
