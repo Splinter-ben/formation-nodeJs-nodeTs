@@ -30,6 +30,7 @@ $npm init -y
 
 ```bash
 $npm i express colors cors dotenv mongoose swagger-jsdoc swagger-ui-express
+$npm i pm2
 $npm i -D nodemon
 ```
 
@@ -37,6 +38,7 @@ $npm i -D nodemon
 
 ```
 "scripts": {
+    "prod":"pm2 start --node-args='-r dotenv/config' ./src/app.js --name appname",
     "dev": "nodemon -r dotenv/config ./src/app.js"
   },
 ```
@@ -70,7 +72,7 @@ $mkdir src
 require('colors');
 
 const express = require('express');
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
 app = express();
 
 // Main route
@@ -376,7 +378,7 @@ class ErrorResponse extends Error {
 module.exports = ErrorResponse;
 ```
 
-### Ajout du GET single user dans "./src/controller/user.controller.js"
+### Ajout du GET a user by Id dans "./src/controller/user.controller.js"
 
 ```javascript
 const User = require('../models/user.model'),
@@ -388,7 +390,7 @@ const User = require('../models/user.model'),
  * @returns     json message
  * @description Get a single user from database.
  */
-exports.getUser = async (req, res, next) => {
+exports.getUserById = async (req, res, next) => {
   try {
     const { id } = req.params;
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -411,11 +413,11 @@ exports.getUser = async (req, res, next) => {
 ### Ajout du GET single user dans "./src/route/user.route.js"
 
 ```javascript
-// GET a single user
+// GET a user by Id
 userRouter.route('/user/:id', cors(corsOptions)).get(getUser);
 ```
 
-### Cryptons le mot de passe depuis le model "./src/model/user.model.js"
+### Cryptons le mot de passe depuis le model dans "./src/model/user.model.js"
 
 ```bash
 $npm i bcryptjs
@@ -456,6 +458,144 @@ UserSchema.pre('save', async function (next) {
 });
 
 module.exports = mongoose.model('User', UserSchema);
+```
+
+### Protection par WebToken avec passport dans "./src/app.js"
+
+```javascript
+// Passport Middleware
+app.use(passport.initialize);
+app.use(passport.session());
+require('../middlewares/passport')(passport);
+```
+
+### Ajout de la comparaison de mot de passe dans "./src/models/user.model.js"
+
+```javascript
+// Match user entered password to hashed password in database
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+```
+
+
+### Ajout de l'authentification dans "./src/app.js"
+
+```javascript
+// Passport Middleware
+app.use(passport.initialize);
+app.use(passport.session());
+require('../middlewares/passport')(passport);
+```
+
+### Création de la stratégie JWT dans "./src/middlewares/passport.js"
+
+```javascript
+const JwtStrategy = require('passport-jwt').Strategy,
+  ExtractJwt = require('passport-jwt').ExtractJwt;
+const { getUserById } = require('../controller/user.controller');
+
+module.exports = () => {
+  let opts = {};
+
+  opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+  opts.secretOrKey = process.env.SECRET;
+  passport.use(
+    new JwtStrategy(opts, (jwt_paylaod, done) => {
+      getUserById(jwt_paylaod._id, (err, user) => {
+        if (err) {
+          return done(err, false);
+        }
+        if (user) {
+          return done(null, user);
+        } else {
+          return done(null, false);
+        }
+      });
+    })
+  );
+};
+```
+
+### Ajout de l'authentification le controller dans "./src/controller/user.controller.js"
+
+```javascript
+/**
+ * @route       POST /api/v1/auth
+ * @access      Public
+ * @returns     json message
+ * @description Login as an existing user.
+ */
+exports.userAuth = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // Validate if email and password are present
+  if (!email || !password) {
+    return next(
+      new ErrorResponse('Please provide and email and password', 400)
+    );
+  }
+
+  // Check for user
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    next(new ErrorResponse('Invalid credentials', 401));
+  }
+
+  // Check if password matches
+  const isMatch = await user.matchPassword(password);
+
+  if (!isMatch) {
+    next(new ErrorResponse('Invalid credentials', 401));
+  } else {
+    // Send token
+    const token = jwt.sign(user.toJSON(), process.env.SECRET, {
+      expiresIn: 604800, // 1 week
+    });
+
+    const { id, name, username, email } = user;
+
+    res.json({
+      success: true,
+      token: 'Bearer ' + token, // Replaced JWT by Bearer
+      user: { id, name, username, email },
+    });
+  }
+};
+```
+
+### Ajout de la protection passport sur la route dans "./src/route/user.route.js"
+
+```javascript
+
+```
+
+### Ajout de la route d'authentification dans "./src/route/user.route.js"
+
+```javascript
+const {
+    registerUser,
+    getUsers,
+    getUserById,
+    userAuth,
+  } = require('../controller/user.controller'),
+  userRouter = require('express').Router(),
+  corsOptions = require('../middlewares/cors'),
+  cors = require('cors');
+
+// POST a new user
+userRouter.route('/user/register', cors(corsOptions)).post(registerUser);
+
+// GET all users
+userRouter.route('/user', cors(corsOptions)).get(getUsers);
+
+// GET a user by Id
+userRouter.route('/user/:id', cors(corsOptions)).get(getUserById);
+
+// Authenticate to the app
+userRouter.route('/user/auth', cors(corsOptions)).post(userAuth);
+
+module.exports = userRouter;
 ```
 
 ### Ajout d'un logger avec morgan
