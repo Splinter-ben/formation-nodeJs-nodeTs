@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./src/app.ts",
+    "dev": "nodemon -r dotenv/config ./src/app.ts",
     "build": "tsc -p ."
   },
   "keywords": [],
