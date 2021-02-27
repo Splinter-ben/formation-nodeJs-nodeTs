@@ -60,13 +60,13 @@ NODE_ENV=development
 PORT=5000
 ```
 
-### Création du dossier source dans "./src"
+### Création du dossier source dans le dossier actuel "./src"
 
 ```bash
 $mkdir src
 ```
 
-### Création du serveur dans "./src/app.js"
+### Création du serveur app.js au niveau "./src/app.js"
 
 ```javascript
 require('colors');
@@ -81,7 +81,24 @@ app.get('/', (req, res) => {
 });
 
 // Start server
-app.listen(port, () => console.log(`Server listen on port ${port}`));
+app.listen(port, () => console.log(`Server listen on port ${port}`.cyan.bold));
+```
+
+### Création d'une route utilisateur dans "./src/routes/user.js"
+```javascript
+const route = require('express').Router();
+
+// User
+route.get('/user', (req, res) => {
+  res.send({
+    firstName: 'John',
+    lastName: 'Doe',
+    age: 37,
+    city: 'Lyon'
+  });
+});
+
+module.exports = route;
 ```
 
 ### Ajout d'une route utilisateur dans "./src/app.js"
@@ -99,26 +116,9 @@ app = express();
 app.use('/api/v1/', route);
 
 // Start server
-app.listen(port, () => console.log(`Server listen on port ${port}`));
+app.listen(port, () => console.log(`Server listen on port ${port}`.cyan.bold));
 ```
 
-### Création d'une route "./src/app.js"
-
-```javascript
-const route = require('express').Route();
-
-// User
-route.get('/user', (req, res) => {
-  res.send({
-    firstName: 'John',
-    lastName: 'Doe',
-    age: 37,
-    city: 'Lyon'
-  });
-});
-
-module.exports = route;
-```
 
 ### Création de la connection à la base de donnée dans "./src/database/database.js"
 
