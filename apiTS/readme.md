@@ -260,7 +260,11 @@ UserSchema.methods.save = async function save() {
 
 // Validate password
 UserSchema.methods.validatePassword = async function validatePassword(data) {
-    return 
+    return bcrypt.compare(data, this.password);
+};
+
+const UserModel = mongoose.model<IUser>('User', UserSchema);
+export default UserModel; 
 ```
 
 ### Ajout d'un controlleur
