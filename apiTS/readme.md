@@ -199,8 +199,11 @@ new App();
 ### Création d'un model 'utilisateur avec cryptage de mot de passe
 
 ```javascript
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from 'bcryptjs';
+
+const { isEmail } = require('validator');
+const SALT_WORK_FACTOR = 10;
 
 export enum Roles {
     ADMIN = 'ADMIN',
@@ -209,21 +212,23 @@ export enum Roles {
 }
 
 export interface IUser extends Document {
-  name: string;
-  email: string;
-  password: string;
-  role: Roles;
-  createdAt: Date;
+    name: string;
+    email: string;
+    password: string;
+    role: Roles;
+    createdAt: Date
 }
 
-export const UserSchema: Schema = new Schema({
+export const UserSchema = new Schema<IUser>({
     name: {
         type: String,
         require: [true, 'Please add an username'],
     },
     email: {
         type: String,
-        require: [true, 'Please add a valide email'],
+        require: true,
+        validate: [isEmail, 'Email is not valid'],
+        createIndexes: { unique: true },
     },
     password: {
         type: String,
@@ -232,7 +237,7 @@ export const UserSchema: Schema = new Schema({
     },
     role: {
         type: String,
-        required: [true],
+        required: true,
         default: 'USER',
     },
     createdAt: {
@@ -241,17 +246,21 @@ export const UserSchema: Schema = new Schema({
     },
 });
 
-// Encrypt password using bcrypt
-UserSchema.pre <
-  IUser >
-  ('save',
-  async function (next) {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-  });
+// Encrypt password
+UserSchema.methods.save = async function save() {
+    if (!this.isModified('password')) return true;
+    try {
+        const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+        this.password = await bcrypt.hash(this.password, salt);
+        this.password;
+    } catch (error) {
+        return error;
+    }
+};
 
-const UserModel = mongoose.model < IUser > ('User', UserSchema);
-export default UserModel;
+// Validate password
+UserSchema.methods.validatePassword = async function validatePassword(data) {
+    return 
 ```
 
 ### Ajout d'un controlleur
