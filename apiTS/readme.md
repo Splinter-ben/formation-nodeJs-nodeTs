@@ -295,7 +295,7 @@ export default class User {
   }
 
   /**
-   * @route       POST /api/v1/register
+   * @route       POST /api/v1/user/register
    * @access      Public
    * @returns     json message
    * @description Register a new user into database.
@@ -345,7 +345,7 @@ userRouter.route('/user/register').post(user.register);
 /**
  * Get all registered users
  */
-userRouter.route('/user').get(user.getAllUsers);
+userRouter.route('/users').get(user.getAllUsers);
 
 export default userRouter;
 ```
@@ -359,7 +359,7 @@ public main(): void {
     server.runServer();
 
     // Main routes
-    this.app.use('/api/v1/', userRouter);
+    this.app.use('/api/v1', userRouter);
 }
 ```
 
