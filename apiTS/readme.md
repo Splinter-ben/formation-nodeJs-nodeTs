@@ -340,12 +340,12 @@ const user = new User();
 /**
  * Register new user
  */
-userRouter.route('/register').post(user.register);
+userRouter.route('/user/register').post(user.register);
 
 /**
  * Get all registered users
  */
-userRouter.route('/register').get(user.getAllUsers);
+userRouter.route('/user').get(user.getAllUsers);
 
 export default userRouter;
 ```
