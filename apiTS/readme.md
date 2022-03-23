@@ -134,7 +134,7 @@ $tsc --init
   }
 ```
 
-### Création du serveur
+### Création du serveur .src/config/server.ts
 
 ```javascript
 import express from "express";
