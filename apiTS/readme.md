@@ -33,7 +33,7 @@ $npm i -D nodemon
   },
 ```
 
-### Création d'un linter
+### Création d'un linter .eslintrc
 
 ```javascript
 {
@@ -52,7 +52,7 @@ $npm i -D nodemon
 }
 ```
 
-### Création d'un fichier tsconfig
+### Création d'un fichier config tsconfig.json
 
 ```javascript
 {
