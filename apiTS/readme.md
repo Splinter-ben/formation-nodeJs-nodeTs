@@ -28,7 +28,7 @@ $npm i -D nodemon
 
 ```
   "scripts": {
-    "dev": "nodemon ./src/app.ts",
+    "dev": "nodemon-r ./src/app.ts",
     "build": "tsc -p ."
   },
 ```
