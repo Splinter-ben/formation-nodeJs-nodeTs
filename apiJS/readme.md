@@ -133,9 +133,11 @@ const URL = `mongodb+srv://${host}:${password}@mongocluster-h3gqv.mongodb.net/${
 const connectDB = async () => {
   const conn = await mongoose.connect((mongo_uri = URL), {
     useNewUrlParser: true,
-    useCreateIndex: true,
     useUnifiedTopology: true,
+    /* No more used for mongoose v6+
+    useCreateIndex: true,
     useFindAndModify: false,
+    */
   });
   console.log(`MongoDB connected: ${conn.connection.host}`.cyan.underline.bold);
 };
