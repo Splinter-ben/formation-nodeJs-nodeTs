@@ -52,6 +52,13 @@ $npm i -D nodemon
 }
 ```
 
+### Création d'un dist folder and src folder
+
+```bash
+$mkdir dist
+$mkdir src
+```
+
 ### Création d'un fichier config tsconfig.json
 
 ```javascript
