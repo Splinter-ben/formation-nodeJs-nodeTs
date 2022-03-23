@@ -29,8 +29,7 @@ $npm init -y
 ### Installation des dépendances pour la formation
 
 ```bash
-$npm i express colors cors dotenv mongoose swagger-jsdoc swagger-ui-express
-$npm i pm2
+$npm i express colors cors dotenv mongoose swagger-jsdoc swagger-ui-express pm2
 $npm i -D nodemon
 ```
 
