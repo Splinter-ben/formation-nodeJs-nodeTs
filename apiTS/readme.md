@@ -60,7 +60,10 @@ $mkdir src
 ```
 
 ### Création d'un fichier config tsconfig.json
-
+```bash
+$tsc --init
+```
+### Modfication du fichier de config
 ```javascript
 {
     "compilerOptions": {
@@ -125,6 +128,7 @@ $mkdir src
       // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   
       /* Advanced Options */
+      "skipLibCheck": true,                     /* Skip type checking of declaration files. */
       "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
     }
   }
