@@ -14,18 +14,18 @@ const {
  *     tags:
  *       - Get alls users
  *     name: Find users
- *     summary: Finds all users
+ *     summary: Find all users
  *     responses:
  *       '200':
  *         description: All users object
  *         schema:
  *           $ref: '#/'
  *       '400':
- *         description: No user found in db
+ *         description: No user found in database
  */
 userRouter.route('/users').get(getUsers);
 
-// Get all single user
+// Get a single user by Id
 userRouter.route('/users/:id').get(getUser);
 
 /**
@@ -69,9 +69,9 @@ userRouter.route('/users/:id').get(getUser);
 userRouter.route('/users/register').post(registerUser);
 
 // Update a user
-userRouter.route('/users/register').put(updateUser);
+userRouter.route('/users/update').put(updateUser);
 
 // Delete a new user
-userRouter.route('/users/register').delete(deleteUser);
+userRouter.route('/users/delete').delete(deleteUser);
 
 module.exports = userRouter;
