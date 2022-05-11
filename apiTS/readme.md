@@ -60,10 +60,13 @@ $mkdir src
 ```
 
 ### Création d'un fichier config tsconfig.json
+
 ```bash
 $tsc --init
 ```
+
 ### Modfication du fichier de config
+
 ```javascript
 {
     "compilerOptions": {
@@ -88,7 +91,7 @@ $tsc --init
       // "importHelpers": true,                 /* Import emit helpers from 'tslib'. */
       // "downlevelIteration": true,            /* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */
       // "isolatedModules": true,               /* Transpile each file as a separate module (similar to 'ts.transpileModule'). */
-  
+
       /* Strict Type-Checking Options */
       "strict": true /* Enable all strict type-checking options. */,
       // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
@@ -98,13 +101,13 @@ $tsc --init
       // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
       // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
       // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */
-  
+
       /* Additional Checks */
       // "noUnusedLocals": true,                /* Report errors on unused locals. */
       // "noUnusedParameters": true,            /* Report errors on unused parameters. */
       // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
       // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
-  
+
       /* Module Resolution Options */
       // "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
       // "baseUrl": "./",                       /* Base directory to resolve non-absolute module names. */
@@ -116,17 +119,17 @@ $tsc --init
       "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
       // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
       // "allowUmdGlobalAccess": true,          /* Allow accessing UMD globals from modules. */
-  
+
       /* Source Map Options */
       // "sourceRoot": "",                      /* Specify the location where debugger should locate TypeScript files instead of source locations. */
       // "mapRoot": "",                         /* Specify the location where debugger should locate map files instead of generated locations. */
       // "inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
       // "inlineSources": true,                 /* Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set. */
-  
+
       /* Experimental Options */
       // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
       // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
-  
+
       /* Advanced Options */
       "skipLibCheck": true,                     /* Skip type checking of declaration files. */
       "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
@@ -134,35 +137,61 @@ $tsc --init
   }
 ```
 
+### Création des constantes pour l'environement .src/constante/evironement.ts
+
+```javascript
+/**
+ * @desc constantes you need for the dabatabase as there is no "final" in TypeScript
+ */
+export namespace Environement {
+  export const PORT: string = process.env.PORT!;
+  export const HOST: string = process.env.DB_HOST_ATLAS!;
+  export const PASSWORD: string = process.env.DB_PASSWORD!;
+  export const BDD_NAME: string = process.env.DB_NAME!;
+  export const BDD_URI: string = `mongodb+srv://${HOST}:${PASSWORD}@mongocluster-h3gqv.mongodb.net/${BDD_NAME}?retryWrites=true&w=majority`;
+}
+```
+
+### Création des constantes pour l'utilisateur .src/constante/user.ts
+
+```javascript
+/**
+ * @desc constantes mostly dealing with the user environement, as there is no "final" in TypeScript
+ */
+export namespace UserValidator {
+  export const SALT_WORK_FACTOR: number = 10;
+  export const EMAIL_REGEX: RegExp = new RegExp(
+    /^(([^<>()[]\\.,;:s@"]+(.[^<>()[]\\.,;:s@"]+)*)|(".+"))@(([[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}])|(([a-zA-Z-0-9]+.)+[a-zA-Z]{2,}))$/
+  );
+}
+```
+
 ### Création du serveur .src/config/server.ts
 
 ```javascript
 import express from "express";
 import colors from "colors";
+import { Environement } from '../constante/environement';
 
 /**
  * @desc   Run the server
  * @params port & app
  */
 export default class Server {
-  private app: express.Application;
-  private port: string;
-
-  constructor(port: string, app: express.Application) {
-    this.port = port;
-    this.app = app;
-  }
+  private readonly app = express();
 
   /**
    * Run the server
    */
   public async runServer() {
     try {
-      this.app.listen(this.port, () => console.log(
-                colors.yellow.inverse(`Server listen on port: ${this.port}`)
-            ))
+      this.app.listen(Environement.PORT, () =>
+        console.log(
+          colors.yellow.inverse(`Server listen on port: ${Environement.PORT}`)
+        )
+      );
     } catch (error) {
-        console.log(colors.red('Error: server is not running'));
+      console.log(error, "Server not running !");
     }
   }
 
@@ -185,12 +214,9 @@ import Server from './config/server'
  * @desc Run the application
  */
 class App{
-    private app: express.Application;
-    private port: string;
+    private readonly app = express();
 
     constructor() {
-        this.port = process.env.PORT!;
-        this.app = express();
         this.main();
     }
 
@@ -199,8 +225,7 @@ class App{
      */
     public main(): void {
         // Start the server
-        const server: Server = new Server(this.port, this.app);
-        server.runServer();
+        new Server().runServer();
     }
 }
 
@@ -275,7 +300,7 @@ UserSchema.methods.validatePassword = async function validatePassword(data) {
 };
 
 const UserModel = mongoose.model<IUser>('User', UserSchema);
-export default UserModel; 
+export default UserModel;
 ```
 
 ### Ajout d'un controlleur
@@ -366,8 +391,7 @@ export default userRouter;
 ```javascript
 public main(): void {
     // Start the server
-    const server: Server = new Server(this.port, this.app);
-    server.runServer();
+    new Server().runServer();
 
     // Main routes
     this.app.use('/api/v1', userRouter);
@@ -386,31 +410,37 @@ this.app.use(express.json());
 import express from 'express';
 import cors from 'cors';
 
-const corsRouter = express.Router();
+/**
+ * @desc Cors allows external connections
+ */
+export class Cors {
+  public corsRouter = express.Router();
+  private options: cors.CorsOptions = {
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'X-Access-Token',
+    ],
+    credentials: true,
+    methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
+    origin: 'http://localhost:5000',
+    preflightContinue: false,
+  };
 
-const options: cors.CorsOptions = {
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'X-Access-Token',
-  ],
-  credentials: true,
-  methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
-  origin: 'http://localhost:5000',
-  preflightContinue: false,
-};
-
-corsRouter.use(cors(options));
-
-export default corsRouter;
+  constructor() {
+    this.corsRouter.use(cors(this.options));
+  }
+}
 ```
 
 ### Ajout du middleware Cors
 
 ```javascript
-this.app.use('/api/v1/', corsRouter);
+// Enable CORS
+const cors = new Cors().corsRouter;
+this.app.use('/api/v1/', cors);
 ```
 
 ### Connection à la BDD à distance
@@ -418,29 +448,19 @@ this.app.use('/api/v1/', corsRouter);
 ```javascript
 import colors from 'colors';
 import mongoose from 'mongoose';
+import { Environement } from '../constante/environement';
 
 /**
- * Atlas:
- * Connect to mongodb cloud database
+ * @desc Connect to mongodb cloud database
  */
 export default class Atlas {
-  public host: string;
-  public password: string;
-  public bdd_name: string;
-
-  constructor(host: string, password: string, bdd: string) {
-    this.host = host;
-    this.password = password;
-    this.bdd_name = bdd;
-  }
 
   /**
-   * Connect to the database
+   * @desc Connect to the database mongoose v5.8.7
    */
   public async connection() {
     try {
-      const conn = await mongoose.connect(
-        `mongodb+srv://${this.host}:${this.password}@mongocluster-h3gqv.mongodb.net/${this.bdd_name}?retryWrites=true&w=majority`,
+      const conn = await mongoose.connect(Environement.BDD_URI,
         {
           useNewUrlParser: true,
           useCreateIndex: true,
@@ -465,26 +485,20 @@ export default class Atlas {
 ### Ajout de la connection à la BDD
 
 ```javascript
+import express from 'express';
+import Server from './config/server';
+import userRouter from './routes/user_route';
+import Atlas from './config/database';
+import { Cors } from './middleware/cors';
+
+
 /**
  * @desc Run the application
  */
 class App {
-  private app: express.Application;
-  private port: string;
-  private host: string;
-  private password: string;
-  private bdd_name: string;
-  private env: string;
-
+  private readonly app = express();
   constructor() {
-    this.port = process.env.PORT!;
-    this.port = process.env.PORT!;
-    this.host = process.env.DB_HOST_ATLAS!;
-    this.password = process.env.DB_PASSWORD!;
-    this.bdd_name = process.env.DB_NAME!;
-    this.env = process.env.NODE_ENV!;
-    this.env = process.env.NODE_ENV!;
-    this.app = express();
+
     this.main();
   }
 
@@ -493,22 +507,23 @@ class App {
    */
   public main(): void {
     // Start the server
-    const server: Server = new Server(this.port, this.app);
-    server.runServer();
+    new Server().runServer();
 
     // Connection to the bdd
-    const database: Atlas = new Atlas(this.host, this.password, this.bdd_name);
-    database.connection();
+    new Atlas().connection();
 
     // Support parsing of application/json type post data
     this.app.use(express.json());
-
+    
     // Enable CORS
-		this.app.use('/api/v1/', corsRouter);
+    const cors = new Cors().corsRouter;
+		this.app.use('/api/v1/', cors);
 
     // Main routes
     this.app.use('/api/v1/', userRouter);
-
+    
   }
 }
+
+new App();
 ```

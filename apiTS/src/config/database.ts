@@ -1,28 +1,18 @@
 import colors from 'colors';
 import mongoose from 'mongoose';
+import { Environement } from '../constante/environement';
 
 /**
- * Atlas:
- * Connect to mongodb cloud database
+ * @desc Connect to mongodb cloud database
  */
 export default class Atlas {
-  public host: string;
-  public password: string;
-  public bdd_name: string;
-
-  constructor(host: string, password: string, bdd: string) {
-    this.host = host;
-    this.password = password;
-    this.bdd_name = bdd;
-  }
 
   /**
-   * Connect to the database
+   * @desc Connect to the database mongoose v5.8.7
    */
   public async connection() {
     try {
-      const conn = await mongoose.connect(
-        `mongodb+srv://${this.host}:${this.password}@mongocluster-h3gqv.mongodb.net/${this.bdd_name}?retryWrites=true&w=majority`,
+      const conn = await mongoose.connect(Environement.BDD_URI,
         {
           useNewUrlParser: true,
           useCreateIndex: true,
